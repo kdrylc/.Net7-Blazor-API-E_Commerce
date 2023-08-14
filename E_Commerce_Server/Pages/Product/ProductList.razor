@@ -1,0 +1,101 @@
+﻿@page "/product"
+@using E_Commerce_Server.Service.IService;
+@inject IProductRepository _productRepository
+@inject IJSRuntime _jsRuntime
+@inject IFileUpload _fileUpload
+@inject NavigationManager _navigationManager
+@attribute [Authorize]
+
+<_DeleteConfirmation ConfirmationChanged="ConfirmDelete_Click"></_DeleteConfirmation>
+<div class="row mt-4">
+    <div class="col-6">
+        <h4 class="card-title text-info">Product</h4>
+    </div>
+    <div class="col-4 offset-2">
+        <a href="product/create" class="btn btn-primary form-control">
+            Create New Product</a>
+    </div>
+    <div class="col-12 p-3">
+        @if (Products.Any())
+        {
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Shop Favourites</th>
+                        <th>Customer Favourites</th>
+                        <th>Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+            <tbody>
+                    @foreach (var product in Products)
+                {
+                    <tr>
+                            <td>@product.Name</td>
+                            <th>
+                                <input type="checkbox" disabled checked="@product.CustomerFavourites">
+                            </th>
+                              <th>
+                                <input type="checkbox" disabled checked="@product.ShopFavourites">
+                            </th>
+                            <th>
+                                @product.Category.Name
+                            </th>
+                        <td>
+                                <NavLink href="@($"product/edit/{product.Id}")" class="btn btn-primary">Edit Product</NavLink>
+                                <NavLink href="@($"product/price/{product.Id}")" class="btn btn-primary">Edit Price</NavLink>
+                                <button class="btn btn-danger" @onclick="(()=>HandleDelete(product.Id))">Delete Product</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            </table>
+
+        }
+        else
+        {
+            if (IsLoading)
+            {
+               <div class="text-center">
+                   <img src="/images/book.gif">
+               </div> 
+            }
+            else
+            {
+                <p>No Records For Product</p>
+            }
+        }
+    </div>
+</div>
+
+
+
+
+@code {
+    private IEnumerable<ProductDTO> Products { get; set; } = new List<ProductDTO>();
+    public bool IsLoading { get; set; } = true;
+    public int DeleteProductId { get; set; } = 0;
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        Products = await _productRepository.GetAll();
+        IsLoading = false;
+    }
+
+    private void HandleDelete(int id)
+    {
+        DeleteProductId = id;
+        _jsRuntime.InvokeVoidAsync("ShowDeleteConfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool IsConfirmed)
+    {
+        if (IsConfirmed && DeleteProductId != 0)
+        {
+            await _productRepository.Delete(DeleteProductId);
+            Products = await _productRepository.GetAll();
+            await _jsRuntime.InvokeVoidAsync("HideDeleteConfirmationModal");
+        }
+    }
+}

@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\E_Commerce_Common\E_Commerce_Common.csproj" />
+    <ProjectReference Include="..\E_Commerce_DataAccess\E_Commerce_DataAccess.csproj" />
+    <ProjectReference Include="..\E_Commerce_Models\E_Commerce_Models.csproj" />
+  </ItemGroup>
+
+</Project>

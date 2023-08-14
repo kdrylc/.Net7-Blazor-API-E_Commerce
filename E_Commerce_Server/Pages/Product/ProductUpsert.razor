@@ -1,0 +1,166 @@
+﻿@page "/product/create"
+@page "/product/edit/{Id:int}"
+@using E_Commerce_Server.Service.IService;
+@inject ICategoryRepository _categoryRepository
+@inject IProductRepository _productRepository
+@inject NavigationManager _navigationManager
+@inject IFileUpload _fileUpload
+@inject IJSRuntime _jsRuntime
+@attribute [Authorize]
+<div class="row my-2">
+    <h3 class="card-title text-primary mb-3 ml-3"> 
+        @Title Product
+    </h3>
+    <div class="col-md-10">
+        @if (IsLoading)
+        {
+               <div class="text-center">
+                   <img src="/images/book.gif">
+               </div> 
+        }
+        else
+        {
+            <EditForm Model="Product" OnValidSubmit="UpsertProduct">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <ValidationSummary></ValidationSummary>
+                <div class="form-group">
+                    <label>Name</label>
+                    <InputText @bind-Value="Product.Name"></InputText>
+                    <ValidationMessage For="(()=>Product.Name)" ></ValidationMessage>
+                </div>
+                <div class="form-group">
+                    <label>Author</label>
+                    <InputText @bind-Value="Product.Author"></InputText>
+                    <ValidationMessage For="(()=>Product.Author)"></ValidationMessage>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <InputText @bind-Value="Product.Description"></InputText>
+                    <ValidationMessage For="(()=>Product.Description)"></ValidationMessage>
+                </div>
+            
+                <div class="row pt-3">
+                    <div class="form-group col-6">
+                        <div class="form-check">
+                            <label class="form-check-label">Is Shop Favourites</label>
+                            <InputCheckbox @bind-Value="Product.ShopFavourites" class="form-check-input"></InputCheckbox>
+                        </div>
+                    </div>
+                      <div class="form-group col-6">
+                        <div class="form-check">
+                            <label class="form-check-label">Is Customer Favourites</label>
+                            <InputCheckbox @bind-Value="Product.CustomerFavourites" class="form-check-input"></InputCheckbox>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group col-6">
+                    <label>Category</label>
+                    <InputSelect @bind-Value="Product.CategoryId" class="form-select">
+                        <option value="0" disabled="disabled" selected>--Select Category--</option>
+                        @foreach (var cat in Categories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="()=>Product.CategoryId"></ValidationMessage>
+                </div>
+                <div class="form-group pt-4 col-6">
+                    <InputFile OnChange="HandleImageUpload"></InputFile>
+                </div>
+                <div class="form-group py-2">
+                    <button class="btn btn-primary">@Title</button>
+                    <NavLink href="product" class="btn btn-warning">Back To Product</NavLink>
+                </div>
+            </EditForm>
+        }
+    
+    </div>
+    <div class="col-md-2">
+        <img src="@Product.ImageUrl" class="w-100" />
+    </div>
+</div>
+
+
+
+
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private ProductDTO Product { get; set; } = new()
+        {
+            ImageUrl = "/images/default.jpg"
+        };
+    private IEnumerable<CategoryDTO> Categories { get; set; } = new List<CategoryDTO>();
+    private string Title { get; set; } = "Create";
+    public bool IsLoading { get; set; } = true;
+    public string OldImageUrl { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        Categories = await _categoryRepository.GetAll();
+        if(Id == 0)
+        {
+            IsLoading = false;
+
+        }
+        else
+        {
+            Product = await _productRepository.GetById(Id);
+            OldImageUrl = Product.ImageUrl;
+            Title = "Update";
+            IsLoading = false;            
+        }
+    }
+
+    private async Task UpsertProduct()
+    {
+        if(Id == 0)
+        {
+            var result = await _productRepository.Create(Product);
+        }
+        else
+        {
+            if (OldImageUrl != Product.ImageUrl)
+            {
+                _fileUpload.DeleteFile(OldImageUrl);
+            }
+            var result = await _productRepository.Update(Product);
+        }
+        _navigationManager.NavigateTo("product");
+    }
+
+    private async Task HandleImageUpload(InputFileChangeEventArgs e)
+    {
+        IsLoading = true;
+        try
+        {
+            if (e.GetMultipleFiles().Count>0)
+            {
+                foreach (var file in e.GetMultipleFiles())
+                {
+                    System.IO.FileInfo fileInfo =new System.IO.FileInfo(file.Name);
+                    if (fileInfo.Extension.ToLower()==".jpg" || 
+                        fileInfo.Extension.ToLower()==".png" ||
+                        fileInfo.Extension.ToLower()==".jpeg"
+                    )
+                    {
+                        Product.ImageUrl = await _fileUpload.UploadFileAsync(file);
+                    }
+                    else
+                    {
+                        //Faile
+                    }
+
+                }
+            }
+            IsLoading = false;
+        }
+        catch (Exception ex)
+        {
+            //Toastr service
+            //throw;
+        }
+    }
+}

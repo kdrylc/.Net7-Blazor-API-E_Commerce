@@ -1,0 +1,49 @@
+﻿@page "/SuccessOrder"
+
+
+@using Blazored.LocalStorage;
+@using E_Commerce_UI.Service.IService;
+@using E_Commerce_Common;
+@using E_Commerce_Models;
+
+@inject ILocalStorageService _localStorage
+@inject IOrderService _orderService
+
+<div class="container">
+    @if (IsProcessing)
+    {
+        <div style="position:fixed;top:50%;left:50%;margin-top:-50px;margin-left:-100px">
+            <img src="images/book.gif" />
+
+        </div>
+
+    }
+    else
+    {
+        <div class="text-center text-primary">
+            <a href="/">Siparişiniz alındı.Bizi tercih ettiğiniz için teşekkürler</a>
+        </div>
+    }
+</div>
+
+
+
+
+@code {
+    private bool IsProcessing { get; set; } = false;
+    private OrderDTO Order { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        IsProcessing = true;
+        Order = await _localStorage.GetItemAsync<OrderDTO>(Keys.Local_OrderDetails);
+        var updateOrder = await _orderService.MarkPaymentSuccessfull(Order.OrderHeader);
+        if (updateOrder.Status == Keys.Status_Confirmed)
+        {
+            await _localStorage.RemoveItemAsync(Keys.ShopppingCart);
+            await _localStorage.RemoveItemAsync(Keys.Local_OrderDetails);
+        }
+        IsProcessing = false;
+    }
+
+  
+}

@@ -1,0 +1,98 @@
+﻿@page "/product/price/{id:int}"
+@inject IProductPriceRepository _productPriceRepository
+@inject IProductRepository _productRepository
+@attribute [Authorize]
+
+
+<h3 class="card-title text-primary mb-3 ml-3">Product Price Management</h3>
+@if (IsLoading)
+{
+    <div class="text-center">
+        <img src="/images/book.gif" />
+
+    </div>
+}
+else
+{
+    <div class="row border p-2 mb-4">
+        <div class="col-11">
+            <div class="card-body">
+                <h4>@Product.Name</h4>
+                <span>Category: @Product.Category.Name</span> <br/>
+                Description : <span>@((MarkupString)Product.Description)</span>
+            </div>
+        </div>
+        <div class="col-1">
+            <img src="@Product.ImageUrl" class="w-100">
+        </div>
+    </div>
+
+    @* <SfGrid @ref="productPriceGrid" DataSource="@ProductPrices" AllowPaging="true" AllowFiltering="true" AllowSorting="true"
+        Toolbar="@(new List<string>{"Add","Edit","Update","Delete","Cancel"})">
+        <GridEditSettings AllowAdding="true" AllowEditing="true" ShowDeleteConfirmDialog="true" AllowDeleting="true"></GridEditSettings>
+        <GridEvents OnActionBegin="ActionHandler" TValue="ProductPriceDTO"></GridEvents>
+        <GridFilterSettings Type="Syncfusion.Blazor.Grids.FilterType.Menu"></GridFilterSettings>
+        <GridSortSettings AllowUnsort="false">
+            <GridSortColumns>
+                <GridSortColumn Field="Price" Direction="SortDirection.Ascending"></GridSortColumn>
+            </GridSortColumns>
+        </GridSortSettings>
+        <GridPageSettings PageSize="5" PageCount="5" PageSizes="true"></GridPageSettings>
+        <GridColumns>
+            <GridColumn IsPrimaryKey="true" AllowAdding="false" Field=@nameof(ProductPriceDTO.Id) HeaderText="ID"></GridColumn>
+            <GridColumn Field=@nameof(ProductPriceDTO.Publisher) HeaderText="PublisherList"> </GridColumn>
+            <GridColumn Field=@nameof(ProductPriceDTO.Price) HeaderText="Price" Format="C2"></GridColumn>
+            <GridColumn HeaderText="Manage Records" Width="150">
+                <GridCommandColumns>
+                    <GridCommandColumn Type="CommandButtonType.Edit" ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-edit", CssClass = "e-flat" })"></GridCommandColumn>
+                    <GridCommandColumn Type="CommandButtonType.Delete" ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-delete", CssClass = "e-flat" })"></GridCommandColumn>
+                    <GridCommandColumn Type="CommandButtonType.Save" ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-update", CssClass = "e-flat" })"></GridCommandColumn>
+                    <GridCommandColumn Type="CommandButtonType.Cancel" ButtonOption="@(new CommandButtonOptions() { IconCss = "e-icons e-cancel-icon", CssClass = "e-flat" })"></GridCommandColumn>
+                </GridCommandColumns>
+            
+                </GridColumn>
+        </GridColumns>
+    </SfGrid> *@
+}
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private ProductDTO Product { get; set; } = new();
+    private IEnumerable<ProductPriceDTO> ProductPrices { get; set; } = new List<ProductPriceDTO>();
+    private bool IsLoading { get; set; } = true;
+    //public SfGrid<ProductPriceDTO> productPriceGrid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Product = await _productRepository.GetById(Id);
+        ProductPrices = await _productPriceRepository.GetAll(Id);
+        IsLoading = false;
+    }
+
+   @* public async void ActionHandler(ActionEventArgs<ProductPriceDTO> args)
+    {
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Save))
+        {
+            args.Data.ProductId = Id;
+            if (args.Action == "Add")
+            {
+                await _productPriceRepository.Create(args.Data);
+                ProductPrices = await _productPriceRepository.GetAll(Id);
+                productPriceGrid.Refresh();
+            }
+            if (args.Action == "Edit")
+            {
+                await _productPriceRepository.Update(args.Data);
+            }
+
+        }
+        if (args.RequestType.Equals(Syncfusion.Blazor.Grids.Action.Delete))
+        {
+            await _productPriceRepository.Delete(args.Data.Id);
+            productPriceGrid.Refresh();
+        }
+    }
+    *@
+}

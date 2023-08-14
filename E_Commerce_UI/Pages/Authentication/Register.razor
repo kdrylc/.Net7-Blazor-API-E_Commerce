@@ -1,0 +1,104 @@
+﻿@page "/register"
+@inject IAuthenticationSercice _authService
+@inject NavigationManager _navigationManager
+
+
+
+    <div class="mask d-flex align-items-center h-100 gradient-custom-3">
+        <div class="container h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-9 col-lg-7 col-xl-6">
+                    <div class="card" style="border-radius: 15px;">
+                        <div class="card-body p-5">
+                            <h2 class="text-uppercase text-center mb-5">Create an account</h2>
+
+                            <EditForm Model="RegisterRequest" OnValidSubmit="RegisterUser">
+                                <DataAnnotationsValidator></DataAnnotationsValidator>
+                                    @if(ShowErrors){
+                                    <div>
+                                        @foreach(var error in Errors){
+                                            <p class="text-danger text-center">@error</p>
+                                        }
+                                    </div>
+                                }
+                                <div class="form-outline mb-4">
+                                <label class="form-label" for="form3Example1cg">Your Name</label>
+
+                                    <InputText  id="form3Example1cg" class="form-control form-control-lg" @bind-Value=RegisterRequest.Name />
+                                    <ValidationMessage For="()=>RegisterRequest.Name" ></ValidationMessage>
+                                </div>
+
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="form3Example3cg">Your Email</label>
+                                        <InputText  id="form3Example1cg" class="form-control form-control-lg" @bind-Value=RegisterRequest.Email />
+                                    <ValidationMessage For="()=>RegisterRequest.Email" ></ValidationMessage>
+                                </div>
+                            <div class="form-outline mb-4">
+                                <label class="form-label" for="form3Example4cdg">Phone Number</label>
+                                <InputText id="form3Example1cg" class="form-control form-control-lg" @bind-Value=RegisterRequest.PhoneNumber />
+                                <ValidationMessage For="()=>RegisterRequest.PhoneNumber"></ValidationMessage>
+                            </div>
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="form3Example4cg">Password</label>
+                                <InputText type="password" id="form3Example1cg" class="form-control form-control-lg" @bind-Value=RegisterRequest.Password />
+                                <ValidationMessage For="()=>RegisterRequest.Password"></ValidationMessage>
+
+                                </div>
+
+                                <div class="form-outline mb-4">
+                                    <label class="form-label" for="form3Example4cdg">Repeat your password</label>
+                                <InputText type="password" id="form3Example1cg" class="form-control form-control-lg" @bind-Value=RegisterRequest.ConfirmPassword />
+                                <ValidationMessage For="()=>RegisterRequest.ConfirmPassword"></ValidationMessage>
+                                </div>
+                        
+
+                          
+
+                                <div class="d-flex justify-content-center">
+                                    <button type="submit"
+                                            class="btn btn-success btn-block btn-lg gradient-custom-4 text-body" style="background: #84fab0;
+                                        /* Chrome 10-25, Safari 5.1-6 */
+                                        background: -webkit-linear-gradient(to right, rgba(132, 250, 176, 1), rgba(143, 211, 244, 1));
+
+                                        /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+                                        background: linear-gradient(to right, rgba(132, 250, 176, 1), rgba(143, 211, 244, 1))">
+                                        Register
+                                    </button>
+                                </div>
+
+                                <p class="text-center text-muted mt-5 mb-0">
+                                    Have already an account? <a href="login"
+                                                                class="fw-bold text-body"><u>Login here</u></a>
+                                </p>
+
+                            </EditForm>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+@code {
+    private RegisterRequestDTO RegisterRequest = new();
+    public bool IsProcesing { get; set; } = false;
+    public bool ShowErrors { get; set; }
+    public IEnumerable<string> Errors { get; set; }
+    private async Task RegisterUser()
+    {
+        ShowErrors = false;
+        IsProcesing = true;
+        var result = await _authService.RegisterUser(RegisterRequest);
+        if (result.IsReqisterationSuccess)
+        {
+            _navigationManager.NavigateTo("/login");
+        }
+        else
+        {
+            Errors = result.Errors;
+            ShowErrors = true;
+        }
+    }
+}

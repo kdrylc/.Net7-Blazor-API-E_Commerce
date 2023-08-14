@@ -1,0 +1,106 @@
+﻿@page "/login"
+@using System.Web;
+@inject IAuthenticationSercice _authService
+@inject NavigationManager _navigationManager
+
+
+
+<EditForm Model="LoginRequest" OnValidSubmit="LoginCustomer">
+    <DataAnnotationsValidator></DataAnnotationsValidator>
+    @if (ShowErrors == true)
+    {
+        <p class="text-danger text-center">@Errors</p>
+    }
+
+    <section class="vh-100 gradient-custom" style="background: #6a11cb;
+
+            /* Chrome 10-25, Safari 5.1-6 */
+            background: -webkit-linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+
+            /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+            background: linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1))">
+        <div class="container py-5 h-100">
+            <div class="row d-flex justify-content-center align-items-center h-100">
+                <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+                    <div class="card bg-dark text-white" style="border-radius: 1rem;">
+                        <div class="card-body p-5 text-center">
+
+                            <div class="mb-md-5 mt-md-4 pb-5">
+
+                                <h2 class="fw-bold mb-2 text-uppercase">Login</h2>
+                                <p class="text-white-50 mb-5">Please enter your login and password!</p>
+
+                                <div class="form-outline form-white mb-4">
+                                    <label class="form-label" for="typeEmailX">Email</label>
+
+                                    <InputText type="email" id="typeEmailX" class="form-control form-control-lg" @bind-Value=LoginRequest.UserName />
+                                    <ValidationMessage For="()=>LoginRequest.UserName" ></ValidationMessage>
+                                </div>
+
+                                <div class="form-outline form-white mb-4">
+                                    <label class="form-label" for="typePasswordX">Password</label>
+                                    
+                                    <InputText type="password" id="typeEmailX" class="form-control form-control-lg" @bind-Value=LoginRequest.Password />
+                                    <ValidationMessage For="()=>LoginRequest.Password" ></ValidationMessage>
+                                </div>
+
+                                <p class="small mb-5 pb-lg-2"><a class="text-white-50" href="#!">Forgot password?</a></p>
+
+                                <button class="btn btn-outline-light btn-lg px-5" type="submit">Login</button>
+
+
+                            </div>
+
+                            <div>
+                                <p class="mb-0">
+                                    Don't have an account? <a href="#!" class="text-white-50 fw-bold">Sign Up</a>
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</EditForm>
+
+
+
+
+
+@code {
+    private LoginRequestDTO LoginRequest = new();
+    public bool IsProcessing { get; set; } = false;
+    public bool ShowErrors { get; set; }
+    public string Errors { get; set; }
+    public string ReturnPath { get; set; }
+    private async Task LoginCustomer()
+    {
+        ShowErrors = false;
+        IsProcessing = true;
+        var result = await _authService.LoginUser(LoginRequest);
+        if (result.IsAuthSuccess)
+        {
+            var absoluteUri = new Uri(_navigationManager.Uri);
+            var queryParam = HttpUtility.ParseQueryString(absoluteUri.Query);
+            ReturnPath = queryParam["returnUrl"];
+            if (string.IsNullOrEmpty(ReturnPath))
+            {
+                _navigationManager.NavigateTo("/");
+
+            }
+            else
+            {
+                _navigationManager.NavigateTo("/"+ReturnPath);
+            }
+        }
+        else
+        {
+            Errors = result.ErrorMessage;
+            ShowErrors = true;
+        }
+        IsProcessing = false;
+    }
+}

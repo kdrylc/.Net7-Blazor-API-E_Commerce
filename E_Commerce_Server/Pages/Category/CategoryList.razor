@@ -1,0 +1,104 @@
+﻿@page "/category"
+@inject ICategoryRepository _categoryRepository
+@inject IJSRuntime _jsRunTime
+@inject NavigationManager _navigationManager
+
+@*@attribute [Authorize] *@
+
+<_DeleteConfirmation ConfirmationChanged="ConfirmDelete_Click">  </_DeleteConfirmation>
+<div class="row mt-4">
+    <div class="col-6">
+        <h4 class="card-title text-info">Category</h4>
+    </div>
+
+    <div class="col-4 offset-2">
+        <a href="category/create" class="btn btn-primary form-control">Create New Category</a>
+    </div>
+
+    <div class="col-12 p-3">
+        @if (Categories.Any())
+        {
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                     @foreach (var cat in Categories)
+                    {
+                        <tr>
+                            <td>@cat.Name</td>
+                      <td> <NavLink href="@($"category/edit/{cat.Id}")" class="btn btn-outline-success ">Edit </NavLink>
+                      <button class="btn btn-danger" @onclick="(()=>HandleDelete(cat.Id))"> Delete</button>    
+                      </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            if (IsLoading)
+            {
+                <div class="text-center"> 
+                    <img src="/images/book.gif">
+                </div>
+            }
+            else
+            {
+                <p>No Records For Category</p>
+            }
+        }
+    </div>
+
+</div>
+
+
+
+
+
+@code {
+    private IEnumerable<CategoryDTO> Categories { get; set; } = new List<CategoryDTO>();
+    public bool IsLoading { get; set; } = true;
+    public int DeleteCategoryId { get; set; } = 0;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationState { get; set; }
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationState;
+        if (!authState.User.Identity.IsAuthenticated)
+        {
+            var uri = new Uri(_navigationManager.Uri);
+            _navigationManager.NavigateTo($"/identity/account/login?returnUrl={uri.LocalPath}",forceLoad:true);
+        }
+        else
+        {
+            await Task.Delay(2000);
+            Categories = await _categoryRepository.GetAll();
+            IsLoading = false;
+        }
+    }
+
+    private void HandleDelete(int id)
+    {
+        DeleteCategoryId = id;
+        _jsRunTime.InvokeVoidAsync("ShowDeleteConbfirmationModal");
+    }
+
+    public async Task ConfirmDelete_Click(bool isConfirmed)
+    {
+        if (isConfirmed && DeleteCategoryId!=0)
+        {
+            await _categoryRepository.Delete(DeleteCategoryId);
+            Categories = await _categoryRepository.GetAll();
+            await _jsRunTime.InvokeVoidAsync("HideDeleteConbfirmationModal");
+        }
+    }
+
+}

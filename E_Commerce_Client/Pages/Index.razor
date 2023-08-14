@@ -1,0 +1,91 @@
+﻿@page "/"
+@using E_Commerce_Client.Service.IService;
+@using E_Commerce_Client.Service;
+@using E_Commerce_Models;
+@inject IProductService _productService
+
+@if (IsProcessing)
+{
+    <div style="position:fixed;top:50%;left:50%;margin-top:-50px;margin-left:-100px">
+        <img src="images/book.gif" />
+
+    </div>
+}
+else
+{
+    <body style="font-family:Arial,sans-serif;background-color:#f5f5f5;margin:0;padding:0;">
+        <header style="background-color: #333;color: #fff;padding:20px;text-align:center">
+            <h1>Kitap Listesi</h1>
+        </header>
+
+        @foreach(var item in Products)
+        {
+            <div class="product-box" style="background-color: #fff;border:1px solid #ccc;box-shadow:2px 2px 2px rgba(0,0,0,0.1);margin:20px;padding:20px;text-align:center">
+               <img class="product-img" style="	max-width: 40%;
+	                    height: 30%;
+	                    margin-bottom: 10px;" src="@item.ImageUrl" alt="Ürün 1">
+                <div class="product-name" style="	font-size: 24px;
+	                    font-weight: bold;
+	                    margin-bottom: 10px;">
+                    @item.Name
+                </div>
+                <div class="product-description" style="font-size: 16px;
+	                    margin-bottom: 10px;">
+                  @item.Description
+                </div>
+                <div class="product-price" style="font-size: 20px;
+	                                                            font-weight: bold;
+	                                                            margin-bottom: 10px;">
+                    @item.Price
+                </div>
+                <div class="button-container" style=" display: flex;
+                                                 justify-content: center; margin: 0 10px;">
+                    <a class="buy-btn text-center" href="/product/@item.Id" style="background-color: orange;
+	                color: #fff;
+	                border: none;
+	                border-radius: 4px;
+	                padding: 10px 20px;
+	                font-size: 16px;
+	                cursor: pointer;">
+                        Ürün Detayı
+                    </a>
+                </div>
+
+            </div>
+        }
+
+
+    </body>
+
+}
+
+@code {
+    [Parameter]
+    public int categoryId { get; set; } = 0;
+    public bool IsProcessing { get; set; } = false;
+    public IEnumerable<ProductDTO> Products { get; set; } = new List<ProductDTO>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Products = await _productService.GetAll();
+    }
+
+    //protected override async Task OnInitializedAsync()
+    //{
+    //    IsProcessing = true;
+    //    Products = await _productService.GetAll();
+    //    IsProcessing = false;
+    //    //if (categoryId == 0)
+    //    //{
+    //    //    IsProcessing = true;
+    //    //    Products = await _productService.GetAll();
+    //    //    IsProcessing = false;
+    //    //}
+    //    //else
+    //    //{
+    //    //    IsProcessing = true;
+    //    //    Products = await _productService.GetProductByCategoryId(categoryId);
+    //    //    IsProcessing = false;
+    //    //}
+    //}
+}

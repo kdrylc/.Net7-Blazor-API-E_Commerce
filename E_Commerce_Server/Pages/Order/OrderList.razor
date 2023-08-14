@@ -1,0 +1,60 @@
+﻿@page "/orderList"
+
+@inject IOrderRepository _orderRepository
+@inject NavigationManager _navigationManager
+@attribute [Authorize]
+
+<div>
+    <h4 class="card-title text-info">
+        Order List
+    </h4>
+    @if (OrderHeaders.Any())
+    {
+        <RadzenDataGrid AllowFiltering="true" AllowColumnResize="true"
+                        FilterMode="FilterMode.Advanced" PageSize="5" AllowPaging="true" AllowSorting="true" Data="OrderHeaders" TItem="OrderHeaderDTO"
+                        LogicalFilterOperator="LogicalFilterOperator.Or">
+            <Columns>
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="Id" Filterable="false" Title="ID" Frozen="true" />
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="FirstName" Title="Name" Frozen="true" />
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="Phone" Title="Phone" />
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="Email" Title="Email" />
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="OrderTotal" Title="Total" />
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="OrderDate" Title="Order Date" FormatString="{0:d}" />
+                <RadzenDataGridColumn TItem="OrderHeaderDTO" Property="Status" Title="Status" />
+            </Columns>
+        </RadzenDataGrid>
+    }
+    else
+    {
+        if (IsLoading)
+        {
+            <div class="text-center">
+                <img src="/images/book.gif">
+            </div>
+        }
+    }
+</div>
+
+
+@code {
+    private IEnumerable<OrderHeaderDTO> OrderHeaders { get; set; } = new List<OrderHeaderDTO>();
+
+    private bool IsLoading { get; set; } = false;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await LoadOrders();
+        }
+    }
+
+    private async Task LoadOrders()
+    {
+        IsLoading = true;
+        StateHasChanged();
+        var Orders = await _orderRepository.GetAll();
+        OrderHeaders = Orders.Select(x => x.OrderHeader);
+        IsLoading = false;
+        StateHasChanged();
+    }
+}

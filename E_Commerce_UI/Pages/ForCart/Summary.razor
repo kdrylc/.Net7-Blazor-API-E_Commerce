@@ -1,0 +1,254 @@
+﻿@page "/Summary"
+@using Blazored.LocalStorage;
+@using E_Commerce_Common;
+@using E_Commerce_DataAccess;
+@using E_Commerce_UI.Helper;
+
+@inject ILocalStorageService _localStorageService
+@inject IProductService _productService
+@inject IOrderService _orderService
+@inject IPaymentService _paymentService
+@inject IDiscountService _discountService
+@inject IJSRuntime _jsRuntime
+
+@attribute [Authorize]
+@if (IsProcessing)
+{
+    <div style="position:fixed;top:50%;left:50%;margin-top:-50px;margin-left:-100px">
+        <img src="images/book.gif" />
+
+    </div>
+}
+else
+{
+    <div class="container my-5 py-5">
+
+        <!--Section: Design Block-->
+        <section>
+
+            <div class="row">
+                <div class="col-md-8 mb-8">
+
+                    <div class="card mb-4">
+                        <div class="card-header py-3">
+                            <h5 class="mb-0 text-font text-uppercase">Delivery address</h5>
+                        </div>
+                        <EditForm Model="Order.OrderHeader" OnValidSubmit="HandleCheckout">
+                            <DataAnnotationsValidator></DataAnnotationsValidator>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">FirstName</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Your name" @bind-Value=Order.OrderHeader.FirstName></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.FirstName"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">LastName</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Your lastname" @bind-Value=Order.OrderHeader.LastName></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.LastName"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Address</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Your addres" @bind-Value=Order.OrderHeader.Address></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.Address"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Phone</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Your phone number" @bind-Value=Order.OrderHeader.Phone></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.Phone"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Postal Code</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Your postal code" @bind-Value=Order.OrderHeader.PostalCode></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.PostalCode"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Additional Information</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Additional Information" @bind-Value=Order.OrderHeader.AdditionalInformation></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.AdditionalInformation"></ValidationMessage>
+                            </div>
+                            <div class="form-group">
+                                <label for="exampleInputPassword1">Email</label>
+                                <InputText class="form-control" id="exampleInputPassword1" placeholder="Email" @bind-Value=Order.OrderHeader.Email></InputText>
+                                <ValidationMessage For="()=>Order.OrderHeader.Email"></ValidationMessage>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </EditForm>
+
+
+                    </div>
+                </div>
+
+
+                <div class="col-md-4 mb-4 position-static">
+                    <div class="card mb-4">
+                        <div class="card-header py-3">
+                            <h5 class="mb-0 text-font">
+                                1 item <span class="float-end mt-1"
+                                         style="font-size: 13px ;">Edit</span>
+                            </h5>
+                        </div>
+                        @foreach(var item in Order.OrderDetails)
+                        {
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <img src="@item.Product.ImageUrl"
+                                     class="rounded-3" style="width: 100px;" alt="@item.ProductName" />
+                                    </div>
+                                    <div class="col-md-6 ms-3">
+                                        <span class="mb-0 text-price" style="padding: 0 .625rem;
+                                                    font-family: futura-pt,Tahoma,Geneva,Verdana,Arial,sans-serif;
+                                                    font-style: normal;
+                                                    font-size: .75rem;
+                                                    font-weight: 700;
+                                                    line-height: .813rem;
+                                                    letter-spacing: 1.6px;"> Price = @item.Price.ToString("c")</span>
+                                        <p class="mb-0 text-descriptions">Product Name = @item.ProductName </p>
+                                        <span class="text-descriptions fw-bold" style="font-family: futura-pt,Tahoma,Geneva,Verdana,Arial,sans-serif;
+                                                            font-style: normal;
+                                                            font-size: .75rem;
+                                                            font-weight: 400;
+                                                            line-height: 1.125rem;
+                                                            margin: .313rem 0 .938rem;
+                                                            padding: 0 .625rem;">Publisher</span> <span class="text-descriptions fw-bold">@item.Publisher</span>
+                                        <p class="text-descriptions mt-0">
+                                           Count : <span class="text-descriptions fw-bold">@item.Count</span>
+                                        </p>
+                                    </div>
+                                </div>
+                               
+
+
+                            </div>
+
+                        }
+                        <div class="card-footer mt-4">
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center border-0 px-0 pb-0 text-muted">
+                                    Subtotal
+                                    <span>@Order.OrderHeader.OrderTotal</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center px-0 fw-bold text-uppercase">
+                                    Total to pay
+                                    <span>@Order.OrderHeader.OrderTotal</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card mb-4">
+                            <div class="card-body p-4 d-flex flex-row">
+                                <div class="form-outline flex-fill">
+                                    <InputText type="text" id="form1" class="form-control form-control-lg" @bind-Value="DiscountCode"/>
+                                    <label class="form-label" for="form1">Discound code</label>
+                                </div>
+                                <button type="submit" @onclick="()=>CheckCoupon(DiscountCode)" class="btn btn-outline-warning btn-lg ms-3">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+        <!--Section: Design Block-->
+
+    </div>
+
+}
+
+
+
+@code {
+    public bool IsProcessing { get; set; } = false;
+    private OrderDTO Order { get; set; } = null;
+    private IEnumerable<ProductDTO> Products { get; set; } = new List<ProductDTO>();
+    private string DiscountCode { get; set; }
+    private int DiscountAmount { get; set; } = 1;
+    private string Message { get; set; } = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsProcessing = true;
+        List<ShoppingCart> cart = await _localStorageService.GetItemAsync<List<ShoppingCart>>(Keys.ShopppingCart);
+        Products = await _productService.GetAll();
+        Order = new()
+            {
+                OrderHeader = new()
+                {
+                    OrderTotal = 0,
+                    Status = Keys.Pending
+                },
+                OrderDetails = new List<OrderDetailDTO>()
+            };
+        foreach (var item in cart)
+        {
+            ProductDTO product = Products.FirstOrDefault(x => x.Id == item.ProductId);
+            ProductPriceDTO productPrice = product.ProductPrices.FirstOrDefault(x => x.Id == item.ProductPriceId);
+            OrderDetailDTO orderDetailDto = new()
+                {
+                    ProductId = item.ProductId,
+                    Publisher = productPrice.Publisher,
+                    Count = item.Count,
+                    Price = productPrice.Price,
+                    ProductName = product.Name,
+                    Product = product,
+                };
+            Order.OrderDetails.Add(orderDetailDto);
+            Order.OrderHeader.OrderTotal += (item.Count + productPrice.Price);
+        }
+        if (await _localStorageService.GetItemAsync<UserDTO>(Keys.Local_UserDetails) != null)
+        {
+            var userDetail = await _localStorageService.GetItemAsync<UserDTO>(Keys.Local_UserDetails);
+            Order.OrderHeader.Email = userDetail.Email;
+            Order.OrderHeader.UserId = userDetail.Id;
+            Order.OrderHeader.FirstName = userDetail.Name;
+            Order.OrderHeader.Phone = userDetail.PhoneNumber;
+        }
+        IsProcessing = false;
+    }
+
+
+    private async Task CheckCoupon(string couponCode)
+    {
+        var result = await _discountService.GetImplementCode(couponCode);
+        if (result.Success == true)
+        {
+            DiscountAmount = result.Data.DiscountAmount;
+            Message = result.Message;
+             await _jsRuntime.ToastrSuccess(Message);
+
+            //ToastrService
+        }
+        else
+        {
+            Message = result.Message;
+           await _jsRuntime.ToastrError(Message);
+
+        }
+    }
+
+
+    private async Task HandleCheckout()
+    {
+        try
+        {
+            IsProcessing = true;
+            var paymentDTO = new StripePaymentDTO()
+                {
+                    Order = Order,
+                    Discount = DiscountAmount
+                };
+            var result = await _paymentService.Checkout(paymentDTO);
+            var StripeSessionAndPI = result.Data.ToString().Split(';');
+            Order.OrderHeader.SessionId = StripeSessionAndPI[0];
+            Order.OrderHeader.PaymentIntentId = StripeSessionAndPI[1];
+            var orderSaved = await _orderService.Create(paymentDTO);
+            await _localStorageService.SetItemAsync(Keys.Local_OrderDetails, orderSaved);
+            await _jsRuntime.InvokeVoidAsync("redirectToCheckout", StripeSessionAndPI[0]);
+
+    }
+        catch (Exception ex)
+        {
+            
+            throw ex;
+        }
+    }
+}

@@ -1,0 +1,75 @@
+﻿@page "/category/create/"
+@page "/category/edit/{Id:int}"
+@inject ICategoryRepository _categoryRepository
+@inject NavigationManager _navigationManager
+@attribute [Authorize]
+
+<div class="row my-2">
+    <h3 class="card-title text-primary mb-3 ml-3">@Title</h3>
+    <div class="col-12">
+        @if (IsLoading)
+        {
+            <div class="text-center">
+                <img src="/images/book.gif">
+
+            </div>
+        }
+        else
+        {
+          <EditForm Model="Category" OnValidSubmit="UpsertCategory">
+              <DataAnnotationsValidator>  </DataAnnotationsValidator>
+              <ValidationSummary></ValidationSummary>
+            <div class="form-group">
+                <label>Name</label>
+                <InputText @bind-Value="Category.Name"></InputText>
+                <ValidationMessage For="(()=>Category.Name)"></ValidationMessage>
+            </div>
+            <div class="form-group py-2">
+                <button class="btn btn-primary">@Title</button>
+                <NavLink href="category" class="btn btn-warning">
+                    Back To Categories
+                </NavLink>
+            </div>
+          </EditForm>  
+        }
+
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private CategoryDTO Category { get; set; } = new CategoryDTO();
+    private string Title { get; set; } = "Create";
+    public bool IsLoading { get; set; } = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        if (Id==0)
+        {
+            IsLoading = false;
+        }
+        else
+        {
+            Category = await _categoryRepository.GetById(Id);
+            Title = "Update";
+            IsLoading = false;
+        }
+    }
+
+    public async Task UpsertCategory()
+    {
+        if (Id==0)
+        {
+            var result = await _categoryRepository.Create(Category);
+        }
+        else
+        {
+            var result = await _categoryRepository.Update(Category);
+        }
+        _navigationManager.NavigateTo("category");
+    }
+
+}
